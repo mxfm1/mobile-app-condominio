@@ -59,9 +59,12 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
+    implementation("androidx.compose.material:material-icons-extended:1.5.0")
+
     //Navigation dependencies
     implementation("androidx.navigation:navigation-fragment-ktx:2.2.2")
     implementation("androidx.navigation:navigation-ui-ktx:2.2.2")
+    implementation("androidx.navigation:navigation-compose:2.9.5")
 
     //Room components
     implementation("androidx.room:room-runtime:2.6.1")
