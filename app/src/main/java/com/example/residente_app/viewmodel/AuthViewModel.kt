@@ -34,33 +34,4 @@ class LoginViewModel(private val repo: AuthRepository):ViewModel(){
 
     fun limpiarFormulario() = run { _form.value = LoginFormState() }
 
-    fun login(){
-        val f = _form.value
-        if (f.username.isBlank() || f.password.isBlank()) {
-            _state.value = LoginState.Error("Completa todos los campos")
-            return
-        }
-
-        _state.value = LoginState.Loading
-
-        viewModelScope.launch {
-            val user = repo.login(f.username,f.password)
-            if(user != null){
-                _state.value = LoginState.Success("Bienvenido ${user.username}")
-            }else{
-                _state.value = LoginState.Error("Usuario o contraseña incorrectos")
-            }
-        }
-    }
-
-    fun seedAdminUser(){
-        viewModelScope.launch {
-            val adminUser = User(
-                username = "admin1",
-                password = "admin123",
-                role = "admin"
-            )
-            repo.insertAdminUser(adminUser)
-        }
-    }
 }

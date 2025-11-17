@@ -41,15 +41,22 @@ import androidx.compose.ui.Alignment
 import com.example.residente_app.viewmodel.LoginState
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.LaunchedEffect
+import com.example.residente_app.viewmodel.UserViewModel
+import com.example.residente_app.viewmodel.ApiLoginState
+
 
 @Composable
 fun LoginScreen(
     vm: LoginViewModel,
-    onSuccess: () -> Unit
+    onSuccess: () -> Unit,
+    userVm: UserViewModel,
+    redirectTo: () -> Unit
 ){
     //val form = vm.form.collectAsState()
     val formState by vm.form.collectAsState()
     val state by vm.state.collectAsState()
+
+    val apiState by userVm.loginResult.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -92,32 +99,17 @@ fun LoginScreen(
 
             Button(
                 onClick = {
-                    scope.launch { vm.login() }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = state !is LoginState.Loading
-            ) {
-                if (state is LoginState.Loading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .padding(end = 8.dp),
-                        color = Color.White,
-                        strokeWidth = 2.dp
-                    )
+                    redirectTo()
                 }
-                Text("Iniciar sesión")
+            ) {
+                Text("Ir al inicio")
             }
 
             Button(
-                onClick = {
-                    vm.seedAdminUser()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp)
+                onClick = { userVm.loginUserFromRESTAPI(formState.username,formState.password)},
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Crear Admin User")
+                Text("Iniciar sesión con API Rest")
             }
 
             SnackbarHost(
@@ -127,38 +119,31 @@ fun LoginScreen(
                     .padding(16.dp)
             )
 
-            LaunchedEffect(state) {
-                when (state) {
-                    is LoginState.Success -> {
-                        onSuccess()
-                        snackbarHostState.showSnackbar((state as LoginState.Success).message)
-                        // Aquí podrías navegar, por ejemplo:
-                        // navController.navigate("home")
-                    }
-                    is LoginState.Error -> {
-                        snackbarHostState.showSnackbar((state as LoginState.Error).message)
-                    }
-                    else -> Unit
+            when (apiState) {
+                is ApiLoginState.Loading -> {
+                    CircularProgressIndicator()
                 }
+
+                is ApiLoginState.Error -> {
+                    val msg = (apiState as ApiLoginState.Error).error
+                    Text(
+                        text = "ERROR: $msg",
+                        color = Color.Red,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
+
+                is ApiLoginState.Success -> {
+                    Text(
+                        text = "Login exitoso",
+                        color = Color.Green,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                    onSuccess()
+                }
+
+                else -> Unit
             }
-
-            //TextField("Usuario", icon = Icons.Filled.Person)
-            //TextField("Contraseña", icon = Icons.Filled.Lock)
-            //TextField("Correo", icon = Icons.Filled.Email)
-
-            //PasswordField(label = "Password", icon = Icons.Filled.Lock)
-//            CheckboxField(label = "Al aceptar nuestras Políticas de Servicio y nuestros Términos y condiciones",
-//                onTextSelected = { clickedText ->
-//                    when(clickedText){
-//                        "Políticas de Servicio" -> {
-//                        }
-//                        "Términos y condiciones" -> {
-//                            // Aquí navegas a la pantalla de términos
-//
-//                        }
-//                    }
-//                })
-
         }
     }
 }
