@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.residente_app.ui.components.HeaderTextComponent
+import com.example.residente_app.ui.components.buttons.LogoutButton
 import com.example.residente_app.viewmodel.LoginState
 import kotlinx.coroutines.launch
 import com.example.residente_app.viewmodel.UserViewModel
@@ -22,19 +23,13 @@ import com.example.residente_app.viewmodel.UserViewModel
 @Composable
 fun ProfileScreen(userVm: UserViewModel,onLogoutSuccess:() -> Unit){
 
-    val apiState by userVm.loginResult.collectAsState()
+    val apiState by userVm.loginState.collectAsState()
     Column(
         modifier = Modifier.fillMaxSize().
         padding(16.dp)
     ){
         HeaderTextComponent("Profile Section")
-        Button(onClick = {
-            onLogoutSuccess()
-            val refresh = userVm.getRefreshToken()
-            //userVm.LogoutUserFromAPIRest(refresh)
-        }){
-            Text("Cerrar sesion")
-        }
+        LogoutButton("Cerrar ses", onLogout = {userVm.logoutUser()})
     }
 
 }

@@ -13,6 +13,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.navigation.compose.rememberNavController
 import com.example.residente_app.ui.components.AppBar
 import com.example.residente_app.ui.theme.ResidenteAppTheme
@@ -28,16 +31,15 @@ class MainActivity : ComponentActivity() {
     private val vm: LoginViewModel by viewModels {
         AuthViewModelFactory(application)
     }
-
     private val userVm: UserViewModel by viewModels()
-
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         setContent {
             ResidenteAppTheme {
-                AppNavigation(vm, userVm)
+                AppNavigation(vm, userVm,applicationContext)
             }
         }
     }

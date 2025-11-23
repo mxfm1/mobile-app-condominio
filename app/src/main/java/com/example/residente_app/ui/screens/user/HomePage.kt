@@ -8,9 +8,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.residente_app.ui.components.buttons.LogoutButton
+import com.example.residente_app.viewmodel.UserViewModel
 
 @Composable
-fun UserHomePage(){
+fun UserHomePage(userVm: UserViewModel){
     LazyColumn(
         modifier = Modifier.padding(24.dp)
     ) {
@@ -20,6 +22,9 @@ fun UserHomePage(){
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
+        }
+        item{
+            LogoutButton("Cerrar sesion", onLogout = {userVm.logoutUser()})
         }
     }
 }

@@ -15,6 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.residente_app.ui.components.buttons.LogoutButton
+import com.example.residente_app.viewmodel.UserViewModel
 
 // ----------------------------
 // DATA MODELS (EJEMPLO)
@@ -67,6 +69,7 @@ val ultimosUsuarios = listOf<UsuarioRegistrado>(
 
 @Composable
 fun AdminHomePage(
+    userVm: UserViewModel
 ) {
     LazyColumn(
         modifier = Modifier
@@ -106,6 +109,14 @@ fun AdminHomePage(
 
         items(ultimosUsuarios.take(5)) { usuario ->
             UsuarioItem(usuario)
+        }
+
+        item {
+            LogoutButton(
+                "Cerrar sesion",
+                onLogout = { userVm.logoutUser()},
+
+                )
         }
     }
 }

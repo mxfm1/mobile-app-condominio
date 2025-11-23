@@ -51,15 +51,20 @@ fun LoginScreen(
     onSuccess: () -> Unit,
     userVm: UserViewModel,
     redirectTo: () -> Unit
-){
+) {
     //val form = vm.form.collectAsState()
     val formState by vm.form.collectAsState()
-    val state by vm.state.collectAsState()
+    val apiState by userVm.loginState.collectAsState()
 
-    val apiState by userVm.loginResult.collectAsState()
-
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
+    LaunchedEffect(apiState) {
+        when(apiState){
+            is ApiLoginState.Success -> {
+                onSuccess()
+                userVm.resetState()
+            }
+            else -> Unit
+        }
+    }
 
     Surface(
         color = Color.White,
@@ -98,48 +103,22 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(
-                onClick = {
-                    redirectTo()
-                }
-            ) {
-                Text("Ir al inicio")
-            }
-
-            Button(
-                onClick = { userVm.loginUserFromRESTAPI(formState.username,formState.password)},
+                onClick = { userVm.loginUser(formState.username,formState.password)},
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Iniciar sesión con API Rest")
             }
-
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier
-
-                    .padding(16.dp)
-            )
-
             when (apiState) {
                 is ApiLoginState.Loading -> {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator( modifier = Modifier.padding(16.dp))
                 }
 
                 is ApiLoginState.Error -> {
-                    val msg = (apiState as ApiLoginState.Error).error
                     Text(
-                        text = "ERROR: $msg",
+                        text = (apiState as ApiLoginState.Error).error,
                         color = Color.Red,
-                        modifier = Modifier.padding(top = 16.dp)
+                        modifier = Modifier.padding(16.dp)
                     )
-                }
-
-                is ApiLoginState.Success -> {
-                    Text(
-                        text = "Login exitoso",
-                        color = Color.Green,
-                        modifier = Modifier.padding(top = 16.dp)
-                    )
-                    onSuccess()
                 }
 
                 else -> Unit

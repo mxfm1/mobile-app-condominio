@@ -1,28 +1,46 @@
 package com.example.residente_app.model.remote.repository
 
-import com.example.residente_app.model.remote.LoginRequest
-import com.example.residente_app.model.remote.MessageResponse
+import android.content.Context
+import com.example.residente_app.data.store.TokenStore
 import com.example.residente_app.model.remote.RetrofitInstance
-import com.example.residente_app.model.remote.TokenResponse
+import com.example.residente_app.data.remote.DTO.LoginRequest
+import com.example.residente_app.data.remote.DTO.LoginResponse
+import com.example.residente_app.data.remote.DTO.LogoutRequest
+import com.example.residente_app.model.remote.APIService
+import kotlinx.coroutines.flow.first
 import retrofit2.Response
-import com.example.residente_app.model.remote.RefreshRequest
 
-class UserRestRepository {
+class UserRepository(context: Context) {
 
-    suspend fun loginUser(): MessageResponse{
-        return RetrofitInstance.api.loginUser()
+    private val api = RetrofitInstance.create(context);
+    private val tokenStore = TokenStore(context);
+
+    suspend fun login(username: String, password: String): Response<LoginResponse> {
+        val request = LoginRequest(username, password)
+        val response = api.login(request)
+
+        if (response.isSuccessful) {
+            response.body()?.also { body ->
+                tokenStore.saveTokens(body.access, body.refresh)
+                tokenStore.saveSession(body.user)
+            }
+        }
+        return response
+    }
+    suspend fun logout(): String {
+        val refresh = tokenStore.refreshToken.first()
+
+        return if (refresh != null) {
+            val request = LogoutRequest(refresh)
+            val response = api.logout(request)
+
+            tokenStore.clear()
+            response.body()?.message ?: "Sesión cerrada"
+        } else {
+            "Problemas al cerrar sesión"
+        }
     }
 
-    suspend fun login(username:String,password:String): Response<TokenResponse>{
-        val request = LoginRequest(
-            username = username,
-            password = password
-        )
-        val body = LoginRequest(username,password)
-        return RetrofitInstance.api.login(body)
-    }
-
-    suspend fun logout(refresh:RefreshRequest){
-        return RetrofitInstance.api.logout(refresh)
-    }
+    suspend fun getStoredAccessToken() = tokenStore.accessToken.first()
+    suspend fun getStoredRefreshToken() = tokenStore.refreshToken.first()
 }
