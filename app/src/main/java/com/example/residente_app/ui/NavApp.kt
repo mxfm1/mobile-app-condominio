@@ -21,29 +21,39 @@ import com.example.residente_app.ui.screens.admin.AdminHomePage
 import com.example.residente_app.ui.screens.user.UserHomePage
 import com.example.residente_app.viewmodel.LoginViewModel
 import com.example.residente_app.viewmodel.UserViewModel
+import com.example.residente_app.viewmodel.UsersAppViewModel
 import android.content.Context
 import android.util.Log
 import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.People
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.example.residente_app.ui.screens.admin.CreateUserScreen
+import com.example.residente_app.ui.screens.admin.UserDetailScreen
+import com.example.residente_app.ui.screens.admin.UserListAdminScreen
 
 val userRoutes: List<Menuitem> = listOf(
     Menuitem(
         id = "home",
         title = "Iniciosadsa",
-        icon = Icons.Default.Home
+        icon = Icons.Default.Home,
+        route = "user/home"
     ),
     Menuitem(
         id = "profile",
         title = "Perfil",
-        Icons.Default.Person
+        Icons.Default.Person,
+        route = "user/profile"
     ),
     Menuitem(
         id = "settings",
         title = "Configuración",
-        icon = Icons.Default.Settings
+        icon = Icons.Default.Settings,
+        route = "user/settings"
     )
 )
 
@@ -51,22 +61,32 @@ val adminRoutes: List<Menuitem> = listOf(
     Menuitem(
         id = "home",
         title = "Inicio",
-        icon = Icons.Default.Home
+        icon = Icons.Default.Home,
+        route = "admin/home"
     ),
     Menuitem(
         id = "profile",
         title = "Perfil",
-        Icons.Default.Person
+        Icons.Default.Person,
+        route = "admin/profile"
     ),
     Menuitem(
         id = "settings",
         title = "Configuración",
-        icon = Icons.Default.Settings
+        icon = Icons.Default.Settings,
+        route = "admin/settings"
     ),
     Menuitem(
         id = "dashboard",
         title = "Panel de Control",
-        icon = Icons.Default.Dashboard
+        icon = Icons.Default.Dashboard,
+        route = "admin/dashboard"
+    ),
+    Menuitem(
+        id="users",
+        title = "Ver usuarios",
+        icon = Icons.Default.People,
+        route = "admin/users/list"
     )
 )
 
@@ -78,7 +98,7 @@ object Routes {
     const val HOME = "home"
 }
 @Composable
-fun AppNavigation(vm: LoginViewModel, userVm: UserViewModel, context:Context){
+fun AppNavigation(vm: LoginViewModel, userVm: UserViewModel, appUserVm: UsersAppViewModel, context:Context){
 
     val nav = rememberNavController()
     val accessToken by userVm.accessToken.collectAsState(initial = null)
@@ -107,7 +127,7 @@ fun AppNavigation(vm: LoginViewModel, userVm: UserViewModel, context:Context){
         composable("home"){
             UnauthenticatedLayout{
                 HomeScreen(
-                    onLogin = { nav.navigate("Login")}
+                   onStart = { nav.navigate("login")}
                 )
             }
         }
@@ -115,7 +135,7 @@ fun AppNavigation(vm: LoginViewModel, userVm: UserViewModel, context:Context){
             AuthenticatedLayout(
                 items = userRoutes,
                 onItemClick = {
-                    nav.navigate(it.title)
+                    nav.navigate(it.route)
                 }
             ) {
                 ProfileScreen(userVm=userVm,
@@ -136,17 +156,69 @@ fun AppNavigation(vm: LoginViewModel, userVm: UserViewModel, context:Context){
             AuthenticatedLayout(
                 items = adminRoutes,
                 onItemClick = {
-                    nav.navigate(it.title)
+                    nav.navigate(it.route)
                 }
             ){
-                AdminHomePage(userVm)
+                AdminHomePage(
+                    userVm,
+                    userAppVm = appUserVm,
+                    onSeeUsers = {
+                        nav.navigate("admin/users/list")
+                    },
+                    onAddUser = {
+                        nav.navigate("admin/users/create")
+                    },
+                    onSeeProperties = {},
+                    onAddProperty = {}
+                )
             }
         }
+
+        composable(route="admin/users/create"){
+            AuthenticatedLayout(
+                items = adminRoutes,
+                onItemClick = {
+                    nav.navigate(it.route)
+                }
+            ) {
+                CreateUserScreen(
+                    vm = appUserVm,
+                    onBack = { nav.popBackStack()}
+                )
+            }
+        }
+
+        composable(route="admin/users/list"){
+            AuthenticatedLayout(
+                items = adminRoutes,
+                onItemClick = {
+                    nav.navigate(it.route)
+                }
+            ) {
+                UserListAdminScreen(
+                    onBack = {nav.popBackStack()},
+                    vm = appUserVm,
+                    onUserClick = {id ->
+                        nav.navigate("admin/user/$id")
+                    }
+                )
+            }
+        }
+
+        composable(
+            route = "admin/user/$id",
+            arguments = listOf(navArgument("userId") { type = NavType.IntType })
+        ){ backStackEntry ->
+            val id = backStackEntry.arguments?.getInt("userId") ?: 0
+
+            UserDetailScreen()
+        }
+
         composable ("user/home"){
             AuthenticatedLayout(
                 items = userRoutes,
                 onItemClick = {
-                    nav.navigate(it.title)
+                    nav.navigate(it.route)
                 }
             ) {
                 UserHomePage(userVm)

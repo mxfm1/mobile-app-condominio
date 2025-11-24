@@ -32,6 +32,6 @@ class LoginViewModel(private val repo: AuthRepository):ViewModel(){
     fun onUsernameChange(v:String) = _form.update { it.copy(username = v)}
     fun onPasswordChange(v:String) = _form.update { it.copy(password = v) }
 
-    fun limpiarFormulario() = run { _form.value = LoginFormState() }
+    fun onSuccessForm() = run { _form.value = LoginFormState() }
 
 }

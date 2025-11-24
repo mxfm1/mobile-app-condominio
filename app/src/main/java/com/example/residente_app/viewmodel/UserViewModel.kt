@@ -43,6 +43,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     val accessToken = tokenStore.accessToken
     val isStaff = tokenStore.isStaff
     val isAdmin = tokenStore.isSuperuser
+    val username = tokenStore.username
 
     val sessionLoaded = MutableStateFlow(false)
     init {

@@ -11,6 +11,31 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitInstance {
 
     private const val BASE_URL = "https://django-api-new-56s4.onrender.com/api/"
+    private var retrofit: Retrofit? = null;
+
+    fun getRetrofit(context: Context):Retrofit{
+        if (retrofit == null) {
+
+            val tokenStore = TokenStore(context)
+
+            val logging = HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            }
+
+            val client = OkHttpClient.Builder()
+                .addInterceptor(logging)
+                .addInterceptor(AuthInterceptor(tokenStore))
+                .build()
+
+            retrofit = Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+        }
+
+        return retrofit!!
+    }
 
     fun create(context: Context): APIService {
 

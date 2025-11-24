@@ -12,6 +12,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.example.residente_app.R
+import com.example.residente_app.ui.theme.AppColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,17 +21,13 @@ fun AppBar(
 ) {
     TopAppBar(
         title = {
-            Text(
-                text = stringResource(R.string.app_name),
-                color = MaterialTheme.colorScheme.onPrimary
-            )
         },
         navigationIcon = {
             IconButton(onClick = onNavigationIconClick) {
                 Icon(
                     imageVector = Icons.Default.Menu,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary
+                    tint = AppColors.TextPrimary
                 )
             }
         },

@@ -7,8 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
+import com.example.residente_app.ui.theme.AppTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -24,6 +23,7 @@ import com.example.residente_app.ui.components.Menuitem
 import com.example.residente_app.viewmodel.AuthViewModelFactory
 import com.example.residente_app.viewmodel.LoginViewModel
 import com.example.residente_app.viewmodel.UserViewModel
+import com.example.residente_app.viewmodel.UsersAppViewModel
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -32,14 +32,17 @@ class MainActivity : ComponentActivity() {
         AuthViewModelFactory(application)
     }
     private val userVm: UserViewModel by viewModels()
+    private val appUserVm: UsersAppViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         setContent {
-            ResidenteAppTheme {
-                AppNavigation(vm, userVm,applicationContext)
+            AppTheme {
+                AppNavigation(
+                    vm, userVm, appUserVm,applicationContext
+                )
             }
         }
     }

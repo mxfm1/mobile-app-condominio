@@ -52,6 +52,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.ui.graphics)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -61,7 +63,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     implementation("androidx.compose.material:material-icons-extended:1.5.0")
-
+    implementation("androidx.compose.material3:material3:1.2.1")
     //Navigation dependencies
     implementation("androidx.navigation:navigation-fragment-ktx:2.2.2")
     implementation("androidx.navigation:navigation-ui-ktx:2.2.2")

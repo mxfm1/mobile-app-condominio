@@ -6,4 +6,5 @@ data class Menuitem(
     val id:String,
     val title:String,
     val icon: ImageVector,
+    val route:String
 )

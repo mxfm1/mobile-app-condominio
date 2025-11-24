@@ -44,6 +44,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.withStyle
+import com.example.residente_app.ui.theme.AppColors
 
 @Composable
 fun NormalTextComponent(value:String){
@@ -56,7 +57,7 @@ fun NormalTextComponent(value:String){
             fontStyle = FontStyle.Normal
         ),
         //color = colorResource(id = R.color.colorText)
-        color = TextColor,
+        color = AppColors.Background,
         textAlign = TextAlign.Center
     )
 }
@@ -72,7 +73,7 @@ fun HeaderTextComponent(value:String){
             fontStyle = FontStyle.Normal
         ),
         //color = colorResource(id = R.color.colorText)
-        color = TextColor,
+        color = AppColors.Background,
         textAlign = TextAlign.Center
     )
 }
