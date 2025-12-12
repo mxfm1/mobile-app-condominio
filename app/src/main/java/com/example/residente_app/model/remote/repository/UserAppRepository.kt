@@ -25,4 +25,9 @@ class UserAppRepository(context:Context){
         Log.d("RESPONSE GET","respuesta ${response}")
         return response
     }
+
+    suspend fun getUser(id:Int):Response<AppUsers>{
+        val response = api.getUser(id)
+        return  response
+    }
 }

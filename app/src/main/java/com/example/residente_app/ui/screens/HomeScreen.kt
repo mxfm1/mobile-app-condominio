@@ -80,7 +80,6 @@ fun HomeScreen(onStart: () -> Unit) {
                 )
             }
 
-            // ------- Botón principal -------
             Button(
                 onClick = onStart,
                 modifier = Modifier

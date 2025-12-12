@@ -22,6 +22,7 @@ import com.example.residente_app.ui.AppNavigation
 import com.example.residente_app.ui.components.Menuitem
 import com.example.residente_app.viewmodel.AuthViewModelFactory
 import com.example.residente_app.viewmodel.LoginViewModel
+import com.example.residente_app.viewmodel.ResidenceViewModel
 import com.example.residente_app.viewmodel.UserViewModel
 import com.example.residente_app.viewmodel.UsersAppViewModel
 import kotlinx.coroutines.launch
@@ -33,6 +34,7 @@ class MainActivity : ComponentActivity() {
     }
     private val userVm: UserViewModel by viewModels()
     private val appUserVm: UsersAppViewModel by viewModels()
+    private val residenceVm: ResidenceViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
@@ -41,7 +43,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 AppNavigation(
-                    vm, userVm, appUserVm,applicationContext
+                    vm, userVm, appUserVm,applicationContext,residenceVm,
                 )
             }
         }

@@ -50,6 +50,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.VerticalAlignmentLine
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.example.residente_app.ui.theme.AppColors
 import com.example.residente_app.viewmodel.UserViewModel
 import com.example.residente_app.viewmodel.ApiLoginState
@@ -133,6 +134,7 @@ fun LoginScreen(
                     label = {Text("Contraseña")},
                     leadingIcon = { Icon(Icons.Filled.Lock,contentDescription = null)},
                     modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = PasswordVisualTransformation(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color.White,
                         unfocusedBorderColor = Color.White.copy(alpha = 0.7f),

@@ -19,21 +19,34 @@ import com.example.residente_app.viewmodel.CreateUserState
 import com.example.residente_app.viewmodel.UsersAppViewModel
 import com.example.residente_app.ui.theme.AppColors
 import androidx.compose.material3.TextFieldDefaults
+import com.example.residente_app.ui.components.CustomInputWithError
 
 
 @Composable
 fun CreateUserScreen(
     vm: UsersAppViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onSuccess:() -> Unit
 ) {
     val formState by vm.form.collectAsState()
     val uiState by vm.state.collectAsState()
+    val fieldErrors = (uiState as? CreateUserState.FieldErrors)?.errors
+
+    LaunchedEffect(uiState) {
+        if(uiState is CreateUserState.Success){
+            vm.clearFields()
+
+            kotlinx.coroutines.delay(3000)
+            vm.clearState()
+            onSuccess()
+        }
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(AppColors.TextPrimary)
-            .padding(16.dp)
+
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -75,70 +88,56 @@ fun CreateUserScreen(
             ) {
 
                 // ------------ USERNAME ------------
-                OutlinedTextField(
+                CustomInputWithError(
                     value = formState.username,
                     onValueChange = { vm.updateField("username", it) },
-                    label = { Text("Nombre de usuario") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(18.dp),
-                    colors = textFieldDark()
+                    label = "Nombre de usuario",
+                    error = fieldErrors?.username?.firstOrNull()
                 )
 
                 // ------------ EMAIL ------------
-                OutlinedTextField(
+                CustomInputWithError(
                     value = formState.email,
                     onValueChange = { vm.updateField("email", it) },
-                    label = { Text("Correo electrónico") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(18.dp),
-                    colors = textFieldDark()
+                    label = "Correo electronico",
+                    error = fieldErrors?.email?.firstOrNull()
                 )
 
                 // ------------ FIRST NAME ------------
-                OutlinedTextField(
+                CustomInputWithError(
                     value = formState.first_name,
                     onValueChange = { vm.updateField("first_name", it) },
-                    label = { Text("Nombre") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(18.dp),
-                    colors = textFieldDark()
+                    label = "Primer Nombre",
+                    error = fieldErrors?.first_name?.firstOrNull()
                 )
 
                 // ------------ LAST NAME ------------
-                OutlinedTextField(
+                CustomInputWithError(
                     value = formState.last_name,
                     onValueChange = { vm.updateField("last_name", it) },
-                    label = { Text("Apellido") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(18.dp),
-                    colors = textFieldDark()
+                    label = "Segundo Nombre",
+                    error = fieldErrors?.last_name?.firstOrNull()
                 )
 
                 // ------------ PASSWORD ------------
-                OutlinedTextField(
+                CustomInputWithError(
                     value = formState.password,
                     onValueChange = { vm.updateField("password", it) },
-                    label = { Text("Contraseña") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(18.dp),
-                    visualTransformation = PasswordVisualTransformation(),
-                    colors = textFieldDark()
+                    label = "Contraseña",
+                    error = fieldErrors?.password?.firstOrNull(),
+                    isPassword = true
                 )
 
                 // ------------ PASSWORD 2 ------------
-                OutlinedTextField(
+                CustomInputWithError(
                     value = formState.password2,
                     onValueChange = { vm.updateField("password2", it) },
-                    label = { Text("Repite la contraseña") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(18.dp),
-                    visualTransformation = PasswordVisualTransformation(),
-                    colors = textFieldDark()
+                    label = "Confirma la contraseña",
+                    error = fieldErrors?.password2?.firstOrNull(),
+                    isPassword = true
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // ------------ SUBMIT BUTTON ------------
+                Spacer(modifier = Modifier.height(4.dp)) // ------------ SUBMIT BUTTON ------------
                 Button(
                     onClick = { vm.createUser(formState) },
                     modifier = Modifier
@@ -149,25 +148,34 @@ fun CreateUserScreen(
                         containerColor = AppColors.Primary
                     )
                 ) {
-                    Text(
-                        "Registrar usuario",
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
+                    if(uiState is CreateUserState.Loading){
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            color = Color.Black,
+                            strokeWidth = 3.dp
+                        )
+                    }else{
+                        Text(
+                            "Registrar usuario",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+                    }
                 }
 
                 // ------------ UI STATE FEEDBACK ------------
                 when (uiState) {
-                    is CreateUserState.Loading ->
-                        CircularProgressIndicator(color = AppColors.Primary)
+                    is CreateUserState.Success -> {
+                        val msg = uiState.message ?: "User creado"
+                        Text(msg, color = Color.Green)
+                    }
 
-                    is CreateUserState.Success ->
-                        Text("Usuario creado correctamente 🎉", color = Color.Green)
-
-                    is CreateUserState.Error ->
-                        Text("Error al crear usuario ❌", color = Color.Red)
-
+                    is CreateUserState.Error -> {
+                        val error = uiState as CreateUserState.Error
+                        val msg = error.message
+                        Text("Error al crear usuario ❌: ${msg}}", color = Color.Red)
+                    }
                     else -> {}
                 }
             }

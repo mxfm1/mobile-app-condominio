@@ -1,7 +1,9 @@
 package com.example.residente_app.ui.screens.admin
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -86,7 +88,8 @@ fun UserListAdminScreen(
                     "",
                     onClick = { onBack()},
                     icon = Icons.Default.ArrowBackIosNew,
-                    backgroundColor = AppColors.DarkBlue
+                    backgroundColor = AppColors.TextPrimary,
+                    contentColor = AppColors.Background
                 )
             }
 
@@ -124,7 +127,7 @@ fun UserListAdminScreen(
                         }else{
                             items(users){user ->
                                 UserCard(user, onItemClick = {id-> onUserClick(id)} )
-                                Spacer(modifier = Modifier.height(6.dp))
+                                Spacer(modifier = Modifier.height(8.dp))
                             }
                         }
                     }
@@ -141,15 +144,17 @@ fun UserCard(
     user: AppUsers,
     onItemClick: (Int) -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFF1A1A1A), shape = RoundedCornerShape(20.dp))
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+    Button(
+        onClick = {onItemClick(user.id)},
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = AppColors.DarkGranate
+        )
     ) {
-        Button(
-            onClick = {onItemClick(user.id)}
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
         ){
             Icon(
                 Icons.Default.Person,

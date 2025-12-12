@@ -19,4 +19,5 @@ interface APIService {
 
     @POST("auth/logout/")
     suspend fun  logout(@Body body:LogoutRequest): Response<LogoutResponse>
+
 }

@@ -11,6 +11,8 @@ import com.example.residente_app.model.remote.repository.UserAppRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 data class CreateUserForm(
     val username:String = "",
@@ -21,11 +23,14 @@ data class CreateUserForm(
     val last_name:String = "",
 )
 
-sealed class CreateUserState(){
+sealed class CreateUserState(
+    val message:String? = "",
+){
     object Idle: CreateUserState()
     object Loading: CreateUserState()
-    class Success(): CreateUserState()
-    class Error(): CreateUserState()
+    class Success(message:String): CreateUserState(message)
+    class Error(message:String): CreateUserState()
+    data class FieldErrors(val errors:UserRegisterError): CreateUserState()
 }
 
 sealed class GetUsersState(
@@ -37,9 +42,27 @@ sealed class GetUsersState(
     class Error(val message:String): GetUsersState(message)
 }
 
+sealed class GetUserDataState(){
+    object Idle: GetUserDataState()
+    object Loading: GetUserDataState()
+    class Success(val user: AppUsers): GetUserDataState()
+    class Error(val message:String): GetUserDataState()
+}
+
+//Errores al registrar un usuario
+data class UserRegisterError(
+    val username:List<String>?=null,
+    val password:List<String>?= null,
+    val password2:List<String>?= null,
+    val email:List<String>? = null,
+    val first_name:List<String>?= null,
+    val last_name:List<String>?= null
+)
 
 class UsersAppViewModel(application: Application)   : AndroidViewModel(application){
 
+    private val _getUserState = MutableStateFlow<GetUserDataState>(GetUserDataState.Idle)
+    val getUserState = _getUserState.asStateFlow()
     private val _form = MutableStateFlow(CreateUserForm())
     val form = _form.asStateFlow()
 
@@ -48,6 +71,9 @@ class UsersAppViewModel(application: Application)   : AndroidViewModel(applicati
 
     private val _getUsersState = MutableStateFlow<GetUsersState>(GetUsersState.Idle)
     val getUsersState = _getUsersState.asStateFlow()
+
+    private val _userList = MutableStateFlow<List<AppUsers>>(emptyList())
+    val userList = _userList.asStateFlow()
     private val repository = UserAppRepository(application)
 
     fun createUser(body: CreateUserForm){
@@ -56,17 +82,47 @@ class UsersAppViewModel(application: Application)   : AndroidViewModel(applicati
             _state.value = CreateUserState.Loading
             try{
                 val response = repository.createUser(body)
+                Log.d("RESPONSE","$response")
                 if(response.isSuccessful){
-                    _state.value = CreateUserState.Success()
+                    _state.value = CreateUserState.Success("Usuario creado con exito")
                 }else{
-                    _state.value = CreateUserState.Error()
+                    val errorJson = response.errorBody()?.string()
+                    val type = object : TypeToken<UserRegisterError>() {}.type
+
+                    val fieldErrors: UserRegisterError? = try {
+                        Gson().fromJson(errorJson, type)
+                    } catch (e: Exception) {
+                        null
+                    }
+
+                    if (fieldErrors != null) {
+                        _state.value = CreateUserState.FieldErrors(fieldErrors)
+                    } else {
+                        _state.value = CreateUserState.Error("Error desconocido al crear usuario.")
+                    }
                 }
             }catch(e: Exception){
-                _state.value = CreateUserState.Error()
+                _state.value = CreateUserState.Error(message = "Error: $e")
             }
         }
     }
 
+    fun getUser(id:Int){
+        viewModelScope.launch {
+            _getUserState.value = GetUserDataState.Loading
+
+            try{
+                val response = repository.getUser(id)
+                if(response.isSuccessful){
+                    _getUserState.value = GetUserDataState.Success(user=response.body()!!)
+                }else{
+                    _getUserState.value = GetUserDataState.Error("Error al pedir la info")
+                }
+            }catch(e: Exception){
+                _getUserState.value = GetUserDataState.Error("Error: $e")
+            }
+        }
+    }
     fun getUsers(){
         viewModelScope.launch {
             _getUsersState.value = GetUsersState.Loading
@@ -78,6 +134,7 @@ class UsersAppViewModel(application: Application)   : AndroidViewModel(applicati
                     val body = response.body()
                     if (body != null) {
                         _getUsersState.value = GetUsersState.Success(body)
+                        _userList.value = body
                     } else {
                         _getUsersState.value = GetUsersState.Error("La respuesta llegó vacía (null).")
                     }
@@ -105,5 +162,12 @@ class UsersAppViewModel(application: Application)   : AndroidViewModel(applicati
             "password2" -> _form.value.copy(password2 = value)
             else -> _form.value
         }
+    }
+    fun clearFields(){
+        _form.value = CreateUserForm()
+    }
+
+    fun clearState(){
+        _state.value = CreateUserState.Idle
     }
 }

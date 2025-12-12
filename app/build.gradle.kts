@@ -87,4 +87,8 @@ dependencies {
 
     // (Opcional) OkHttp para logging
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+
+    //tiempo
+    implementation("org.threeten:threetenbp:1.6.8:no-tzdb")
+    implementation("com.jakewharton.threetenabp:threetenabp:1.4.6")
 }

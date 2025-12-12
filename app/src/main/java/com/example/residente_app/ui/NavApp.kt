@@ -6,7 +6,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
-import androidx.navigation.NavHost
 import com.example.residente_app.ui.components.Menuitem
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -24,6 +23,7 @@ import com.example.residente_app.viewmodel.UserViewModel
 import com.example.residente_app.viewmodel.UsersAppViewModel
 import android.content.Context
 import android.util.Log
+import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.People
 import androidx.compose.runtime.LaunchedEffect
@@ -33,8 +33,11 @@ import androidx.compose.runtime.remember
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.example.residente_app.ui.screens.admin.CreateUserScreen
+import com.example.residente_app.ui.screens.admin.HouseManageScreen
 import com.example.residente_app.ui.screens.admin.UserDetailScreen
 import com.example.residente_app.ui.screens.admin.UserListAdminScreen
+import com.example.residente_app.viewmodel.ResidenceViewModel
+import com.example.residente_app.ui.screens.admin.houses.HouseDetailScreen
 
 val userRoutes: List<Menuitem> = listOf(
     Menuitem(
@@ -65,10 +68,10 @@ val adminRoutes: List<Menuitem> = listOf(
         route = "admin/home"
     ),
     Menuitem(
-        id = "profile",
-        title = "Perfil",
-        Icons.Default.Person,
-        route = "admin/profile"
+        id= "domicilio",
+        title="Domicilios",
+        icon = Icons.Default.Apartment,
+        route = "admin/houses"
     ),
     Menuitem(
         id = "settings",
@@ -98,7 +101,13 @@ object Routes {
     const val HOME = "home"
 }
 @Composable
-fun AppNavigation(vm: LoginViewModel, userVm: UserViewModel, appUserVm: UsersAppViewModel, context:Context){
+fun AppNavigation(
+    vm: LoginViewModel,
+    userVm: UserViewModel,
+    appUserVm: UsersAppViewModel,
+    context:Context,
+    residenceVm: ResidenceViewModel
+){
 
     val nav = rememberNavController()
     val accessToken by userVm.accessToken.collectAsState(initial = null)
@@ -162,14 +171,33 @@ fun AppNavigation(vm: LoginViewModel, userVm: UserViewModel, appUserVm: UsersApp
                 AdminHomePage(
                     userVm,
                     userAppVm = appUserVm,
+                    residenceVm = residenceVm,
                     onSeeUsers = {
                         nav.navigate("admin/users/list")
                     },
                     onAddUser = {
                         nav.navigate("admin/users/create")
                     },
-                    onSeeProperties = {},
+                    onSeeProperties = {
+                        nav.navigate("admin/houses")
+                    },
                     onAddProperty = {}
+                )
+            }
+        }
+
+        composable(route="admin/houses"){
+            AuthenticatedLayout(
+                items = adminRoutes,
+                onItemClick = {
+                    nav.navigate(it.route)
+                }
+            ) {
+                HouseManageScreen(
+                    vm= residenceVm,
+                    onHouseRedirect = {identifier ->
+                        nav.navigate("admin/houses/$identifier")
+                    }
                 )
             }
         }
@@ -183,7 +211,8 @@ fun AppNavigation(vm: LoginViewModel, userVm: UserViewModel, appUserVm: UsersApp
             ) {
                 CreateUserScreen(
                     vm = appUserVm,
-                    onBack = { nav.popBackStack()}
+                    onBack = { nav.popBackStack()},
+                    onSuccess = { nav.navigate("admin/home")}
                 )
             }
         }
@@ -205,13 +234,33 @@ fun AppNavigation(vm: LoginViewModel, userVm: UserViewModel, appUserVm: UsersApp
             }
         }
 
+        //dinamic routes
         composable(
-            route = "admin/user/$id",
-            arguments = listOf(navArgument("userId") { type = NavType.IntType })
+            route = "admin/user/{id}",
+            arguments = listOf(navArgument("id") { type = NavType.IntType })
         ){ backStackEntry ->
-            val id = backStackEntry.arguments?.getInt("userId") ?: 0
+            val id = backStackEntry.arguments?.getInt("id") ?: 0
+            UserDetailScreen(
+                userId = id,
+                userVm = appUserVm,
+                onBack = {nav.popBackStack()}
+            )
+        }
 
-            UserDetailScreen()
+        composable(
+            route = "admin/houses/{identifier}",
+            arguments = listOf(navArgument("identifier"){type = NavType.StringType})
+        ){ backStackEntry ->
+
+            val identifier = backStackEntry.arguments?.getString("identifier") ?: ""
+
+            HouseDetailScreen(
+                residenceVm = residenceVm,
+                onBack = {nav.popBackStack()},
+                identifier = identifier,
+                usersVm = appUserVm,
+                onAssign = {}
+            )
         }
 
         composable ("user/home"){

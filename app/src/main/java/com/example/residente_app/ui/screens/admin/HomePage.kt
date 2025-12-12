@@ -23,6 +23,7 @@
     import androidx.compose.ui.unit.dp
     import androidx.compose.ui.unit.sp
     import com.example.residente_app.data.remote.DTO.AppUsers
+    import com.example.residente_app.data.remote.DTO.ResidenceResponse
     import com.example.residente_app.ui.components.buttons.AgregarUsuariosButton
     import com.example.residente_app.ui.components.buttons.CustomAddIconButton
     import com.example.residente_app.ui.components.buttons.LogoutButton
@@ -30,7 +31,10 @@
     import com.example.residente_app.ui.theme.AppColors
     import com.example.residente_app.viewmodel.UserViewModel
     import com.example.residente_app.ui.components.sections.SectionWithBackground
+    import com.example.residente_app.util.formatFecha
     import com.example.residente_app.viewmodel.GetUsersState
+    import com.example.residente_app.viewmodel.ResidenceGetState
+    import com.example.residente_app.viewmodel.ResidenceViewModel
     import com.example.residente_app.viewmodel.UsersAppViewModel
 
     data class Casa(
@@ -109,6 +113,7 @@
     @Composable
     fun AdminHomePage(
         userVm: UserViewModel,
+        residenceVm: ResidenceViewModel,
         userAppVm: UsersAppViewModel,
         onAddUser: () -> Unit,
         onSeeUsers: () -> Unit,
@@ -118,10 +123,13 @@
 
         LaunchedEffect(Unit) {
             userAppVm.getUsers()
+            residenceVm.getHouses()
         }
 
         val username by userVm.username.collectAsState("")
         val getUsersState by userAppVm.getUsersState.collectAsState()
+        val getResidenceState  by residenceVm.getState.collectAsState()
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -179,7 +187,7 @@
                     SectionWithBackground(
                         title = "Titulo",
                         redirectLabel = "Ver todos los domicilios",
-                        onRedirect = {},
+                        onRedirect = {onSeeProperties()},
                         gradient = Brush.verticalGradient(
                             listOf(
                                 Color(0xFF3EDCD3),
@@ -187,8 +195,20 @@
                             )
                         )
                     ) {
-                        ultimasCasas.take(4).forEach{ casa ->
-                            CasaCardDark(casa)
+                        when(getResidenceState){
+                            is ResidenceGetState.Loading -> {
+                                CircularProgressIndicator(color = Color.White)
+                            }
+
+                            is ResidenceGetState.Success -> {
+                                val list = getResidenceState as ResidenceGetState.Success
+                                val residences = list.residence
+
+                                residences.take(12).forEach { residences ->
+                                    CasaCardDark(residences)
+                                }
+                            }
+                            else -> Unit
                         }
                     }
                 }
@@ -236,7 +256,7 @@
                             is GetUsersState.Success -> {
                                 val success = getUsersState as GetUsersState.Success
                                 val users = success.users
-                                users.take(5).forEach{ user ->
+                                users.take(10).forEach{ user ->
                                     UsuarioCardDark(user)
                                 }
                             }
@@ -266,7 +286,7 @@
     // CARD DE DOMICILIO
     // ----------------------------
     @Composable
-    fun CasaCardDark(casa: Casa) {
+    fun CasaCardDark(casa: ResidenceResponse) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -292,26 +312,31 @@
 
                 Column(Modifier.weight(1f)) {
                     Text(
-                        text = casa.nombre,
+                        text = casa.identifier,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         color = Color.White
                     )
                     Text(
-                        text = "Dueño: ${casa.dueno}",
+                        text = "Dueño:",
                         fontSize = 14.sp,
                         color = Color.LightGray
                     )
                 }
 
                 Column(horizontalAlignment = Alignment.End) {
+                    val texto = if(casa.residents.size > 0){
+                        "Residentes: ${casa.residents.size}"
+                    }else{
+                        "Sin residentes registrados"
+                    }
                     Text(
-                        text = "Habitantes: ${casa.habitantes}",
+                        text = "${texto}",
                         color = AppColors.Primary,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = casa.fechaRegistro,
+                        text = "${formatFecha(casa.created_at)}",
                         fontSize = 12.sp,
                         color = Color.Gray
                     )
