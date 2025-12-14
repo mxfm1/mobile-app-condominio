@@ -20,6 +20,7 @@ import com.example.residente_app.ui.components.AppBar
 import com.example.residente_app.ui.theme.ResidenteAppTheme
 import com.example.residente_app.ui.AppNavigation
 import com.example.residente_app.ui.components.Menuitem
+import com.example.residente_app.ui.screens.user.UserHomePage
 import com.example.residente_app.viewmodel.AuthViewModelFactory
 import com.example.residente_app.viewmodel.LoginViewModel
 import com.example.residente_app.viewmodel.ResidenceViewModel
@@ -49,3 +50,5 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+

@@ -31,13 +31,20 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.navigation.NavType
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import com.example.residente_app.ui.components.layouts.User.UserLayout
 import com.example.residente_app.ui.screens.admin.CreateUserScreen
 import com.example.residente_app.ui.screens.admin.HouseManageScreen
 import com.example.residente_app.ui.screens.admin.UserDetailScreen
 import com.example.residente_app.ui.screens.admin.UserListAdminScreen
 import com.example.residente_app.viewmodel.ResidenceViewModel
 import com.example.residente_app.ui.screens.admin.houses.HouseDetailScreen
+import com.example.residente_app.ui.screens.user.CreateInviteScreen
+import com.example.residente_app.ui.screens.user.InvitePeopleScreen
+import com.example.residente_app.ui.screens.user.UserPackagesScreen
+import com.example.residente_app.ui.screens.user.UserProfileScreen
+
 
 val userRoutes: List<Menuitem> = listOf(
     Menuitem(
@@ -110,17 +117,19 @@ fun AppNavigation(
 ){
 
     val nav = rememberNavController()
+    //current route
+    val navBackStackEntry by nav.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
     val accessToken by userVm.accessToken.collectAsState(initial = null)
     val isStaff by userVm.isStaff.collectAsState(initial = false)
     val isAdmin by userVm.isAdmin.collectAsState(initial = false)
     val sessionLoaded by userVm.sessionLoaded.collectAsState();
 
+
     LaunchedEffect(accessToken,isAdmin,isStaff) {
 
         if(!sessionLoaded) return@LaunchedEffect
-
-        Log.d("nav","TOKEN: ${accessToken},admin: ${isAdmin}, staff: ${isStaff}")
-
         if(accessToken.isNullOrEmpty()){
             nav.navigate("login"){popUpTo(0)}
         }else{
@@ -263,14 +272,59 @@ fun AppNavigation(
             )
         }
 
+        /*-----------------------
+        UserRoutes
+        -------------------------
+         */
         composable ("user/home"){
-            AuthenticatedLayout(
-                items = userRoutes,
-                onItemClick = {
-                    nav.navigate(it.route)
-                }
+            UserLayout(
+                onItemClick = {route ->
+                    nav.navigate(route)
+                },
+                currentRoute=currentRoute
             ) {
-                UserHomePage(userVm)
+                UserHomePage()
+            }
+        }
+        composable ("user/access"){
+            UserLayout(
+                onItemClick = { route ->
+                    nav.navigate(route)
+                },
+                currentRoute=currentRoute
+            ) {
+                InvitePeopleScreen(
+                    onInviteRedirect = {
+                        nav.navigate("user/access/generateInvite")
+                    }
+                )
+            }
+        }
+
+        composable("user/access/generateInvite"){
+            CreateInviteScreen(
+                onScreenBack = {nav.popBackStack()}
+            )
+        }
+
+        composable("user/packages"){
+            UserLayout(
+                onItemClick = {route ->
+                    nav.navigate(route)
+                },
+                currentRoute=currentRoute
+            ) {
+                UserPackagesScreen()
+            }
+        }
+        composable("user/profile"){
+            UserLayout(
+                onItemClick = {route ->
+                    nav.navigate(route)
+                },
+                currentRoute=currentRoute
+            ) {
+                UserProfileScreen()
             }
         }
     }
