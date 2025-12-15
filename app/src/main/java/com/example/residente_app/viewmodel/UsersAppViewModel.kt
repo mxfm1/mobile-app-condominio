@@ -2,11 +2,13 @@ package com.example.residente_app.viewmodel
 
 import android.app.Application
 import android.util.Log
+import androidx.compose.runtime.MutableState
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.residente_app.data.remote.DTO.AppUsers
 import com.example.residente_app.data.remote.DTO.GetUsersResponse
+import com.example.residente_app.data.remote.DTO.UserResidenceInfoResponse
 import com.example.residente_app.model.remote.repository.UserAppRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -76,6 +78,9 @@ class UsersAppViewModel(application: Application)   : AndroidViewModel(applicati
     val userList = _userList.asStateFlow()
     private val repository = UserAppRepository(application)
 
+    private val _userResidenceData = MutableStateFlow<UserResidenceInfoResponse?>(null)
+    val userResidenceData = _userResidenceData.asStateFlow()
+
     fun createUser(body: CreateUserForm){
         viewModelScope.launch {
 
@@ -144,6 +149,22 @@ class UsersAppViewModel(application: Application)   : AndroidViewModel(applicati
 
             } catch (e: Exception) {
                 _getUsersState.value = GetUsersState.Error("Excepción: ${e.message}")
+            }
+        }
+    }
+
+    fun getUserResidenceInfo(){
+        viewModelScope.launch {
+            try{
+                val response = repository.getUserInfo()
+                if(response.isSuccessful){
+                    val data = response.body()
+                    if(data != null){
+                        _userResidenceData.value = data
+                    }
+                }
+            }catch(e:Exception){
+
             }
         }
     }

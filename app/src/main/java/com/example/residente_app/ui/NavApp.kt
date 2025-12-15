@@ -44,6 +44,7 @@ import com.example.residente_app.ui.screens.user.CreateInviteScreen
 import com.example.residente_app.ui.screens.user.InvitePeopleScreen
 import com.example.residente_app.ui.screens.user.UserPackagesScreen
 import com.example.residente_app.ui.screens.user.UserProfileScreen
+import com.example.residente_app.viewmodel.InvitationViewModel
 
 
 val userRoutes: List<Menuitem> = listOf(
@@ -113,7 +114,8 @@ fun AppNavigation(
     userVm: UserViewModel,
     appUserVm: UsersAppViewModel,
     context:Context,
-    residenceVm: ResidenceViewModel
+    residenceVm: ResidenceViewModel,
+    inviteVm: InvitationViewModel
 ){
 
     val nav = rememberNavController()
@@ -296,14 +298,18 @@ fun AppNavigation(
                 InvitePeopleScreen(
                     onInviteRedirect = {
                         nav.navigate("user/access/generateInvite")
-                    }
+                    },
+                    inviteVM = inviteVm,
+                    userVm=appUserVm
                 )
             }
         }
 
         composable("user/access/generateInvite"){
             CreateInviteScreen(
-                onScreenBack = {nav.popBackStack()}
+                onScreenBack = {nav.popBackStack()},
+                inviteVM = inviteVm,
+                userVm = appUserVm
             )
         }
 

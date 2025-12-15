@@ -12,6 +12,7 @@ import com.example.residente_app.data.remote.DTO.EditResidentRequest
 import com.example.residente_app.data.remote.DTO.GetUsersResponse
 import com.example.residente_app.data.remote.DTO.Residence
 import com.example.residente_app.data.remote.DTO.ResidenceResponse
+import com.example.residente_app.data.remote.DTO.UserResidenceInfoResponse
 import com.example.residente_app.viewmodel.CreateUserForm
 import retrofit2.Response
 import retrofit2.http.Body
@@ -28,6 +29,11 @@ interface UserAppAPInterface {
 
     @GET("auth/users/{id}/")
     suspend fun  getUser(@Path("id")id:Int):Response<AppUsers>
+
+    @GET("auth/users/me")
+    suspend fun getResidentInfo():Response<UserResidenceInfoResponse>
+
+    //implementa llamada get info user by id
 }
 
 interface ResidenceAPInterface{
@@ -63,4 +69,6 @@ interface ResidenceAPInterface{
         @Path("identifier") identifier: String,
         @Body request: EditResidentRequest
     ): Response<AssignOwnerResponse>
+
+
 }

@@ -34,3 +34,28 @@ data class AppUsersWithHouses(
     val last_name: String,
     val houses: List<Residence>
 )
+
+//DTO PARA INFO DEL USUARIO REESPECTO A LA REDIDENCIA
+data class UserResidenceInfoResponse(
+    val id:Int,
+    val username:String,
+    val email:String,
+    val first_name:String,
+    val last_name:String,
+    val is_staff: Boolean,
+    val is_superuser:Boolean,
+    val residence: ResidenceInfo?
+)
+
+data class ResidenceInfo(
+    val identifier:String,
+    val owner: OwnerInfo
+)
+
+data class OwnerInfo(
+    val id:Int,
+    val username:String,
+    val email:String,
+    val first_name:String,
+    val last_name:String
+)

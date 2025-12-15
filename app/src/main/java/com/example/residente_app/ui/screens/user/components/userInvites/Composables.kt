@@ -1,6 +1,7 @@
 package com.example.residente_app.ui.screens.user.components.userInvites
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,9 +21,16 @@ import androidx.compose.ui.unit.sp
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import com.example.residente_app.data.remote.DTO.InviteCreationResponse
+import com.example.residente_app.data.remote.DTO.UserResidenceInfoResponse
 import com.example.residente_app.ui.screens.user.components.ElegantDivider
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.MailOutline
+import androidx.compose.material3.CircularProgressIndicator
 
 
 @Composable
@@ -90,7 +98,9 @@ fun InviteTopHeader(modifier: Modifier) {
 
 @Composable
 fun InviteQrCard(
-    onInviteScreenRedirect: () -> Unit
+    onInviteScreenRedirect: () -> Unit,
+    invitationContent: InviteCreationResponse?,
+    userData: UserResidenceInfoResponse?
 ) {
     Box(
         modifier = Modifier
@@ -114,14 +124,22 @@ fun InviteQrCard(
                     )
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
-
-
+           Row(
+               horizontalArrangement = Arrangement.Center,
+               modifier = Modifier.fillMaxWidth()
+                   .padding(bottom = 6.dp)
+           ){
+               Text(
+                   "Invita a tus visitas",
+                   color = Color.White,
+                   fontSize = 22.sp,
+                   fontWeight = FontWeight.Bold
+                   )
+           }
            Box(
                modifier = Modifier.fillMaxWidth(),
                contentAlignment = Alignment.Center
            ){
-                Text("Invita a tus visitas", color = Color.White)
                QrPlaceholder()
            }
 
@@ -133,7 +151,10 @@ fun InviteQrCard(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            InviteInfoSection()
+            InviteInfoSection(
+                inviteInformation = invitationContent,
+                userData = userData
+            )
             Spacer(modifier = Modifier.height(24.dp))
             Row(
                 horizontalArrangement = Arrangement.Center,
@@ -182,7 +203,12 @@ fun SmallActionChip(
 }
 
 @Composable
-fun InviteInfoSection() {
+fun InviteInfoSection(
+    inviteInformation: InviteCreationResponse?,
+    userData: UserResidenceInfoResponse?
+) {
+    if (inviteInformation == null) return
+
     Column {
         Text(
             text = "Información",
@@ -193,52 +219,81 @@ fun InviteInfoSection() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 🔹 Fila 1
-        Row(modifier = Modifier.fillMaxWidth()) {
-            InfoField(
-                label = "Residencia",
-                value = "H2",
-                modifier = Modifier.weight(1f)
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            InfoField(
-                label = "Anfitrión",
-                value = "Username",
-                modifier = Modifier.weight(1f)
-            )
-        }
+        TwoColumnRow(
+            left = {
+                InfoField(
+                    label = "Residencia",
+                    value = inviteInformation.residence
+                )
+            },
+            right = {
+                InfoField(
+                    label = "Anfitrión",
+                    value = "${userData?.first_name.orEmpty()} ${userData?.last_name.orEmpty()}"
+                )
+            }
+        )
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // 🔹 Fila 2
-        Row(modifier = Modifier.fillMaxWidth()) {
-            InfoField(
-                label = "Código",
-                value = "53214",
-                modifier = Modifier.weight(1f)
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            InfoField(
-                label = "Válido hasta",
-                value = "15-12-2024 18:00",
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 🔹 Campos largos (columna)
-        InfoField(
-            label = "Nombre invitado",
-            value = "Ivan Cabrera"
+        TwoColumnRow(
+            left = {
+                InfoField(
+                    label = "Motivo",
+                    value = inviteInformation.reason
+                )
+            },
+            right = {
+                InfoField(
+                    label = "Código",
+                    value = inviteInformation.code.toString()
+                )
+            }
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
+        TwoColumnRow(
+            left = {
+                InfoField(
+                    label = "Válido hasta",
+                    value = "15-12-2024 18:00" // luego formateas desde backend
+                )
+            },
+            right = {
+                InfoField(
+                    label = "Nombre invitado",
+                    value = inviteInformation.guest_name
+                )
+            }
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Campo largo → ocupa 2 columnas
         InfoField(
             label = "Info referencia",
-            value = "-"
+            value = inviteInformation.aditional_information
         )
+    }
+}
+
+
+@Composable
+private fun TwoColumnRow(
+    left: @Composable () -> Unit,
+    right: @Composable () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(modifier = Modifier.weight(1f)) {
+            left()
+        }
+        Box(modifier = Modifier.weight(1f)) {
+            right()
+        }
     }
 }
 
@@ -278,10 +333,18 @@ fun InviteInfoRow(label: String, value: String) {
  */
 
 @Composable
-fun InviteGeneratedList() {
+fun InviteGeneratedList(
+    userData: UserResidenceInfoResponse?,
+    userInvitationsList: List<InviteCreationResponse>
+) {
     Column(
-        modifier = Modifier.padding(horizontal = 20.dp)
+        modifier = Modifier.padding(
+            bottom = 84.dp,
+            start = 20.dp,
+            end = 20.dp
+        )
     ) {
+
         Text(
             "Invitaciones generadas",
             color = Color.White,
@@ -291,28 +354,129 @@ fun InviteGeneratedList() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        InviteGeneratedItem(
-            name = "Lucas Hernandez",
-            status = "Valida",
-            date = "vie-12",
-            statusColor = Color(0xFF6BD3B0)
+        if(userInvitationsList.isEmpty()){
+            EmptyInvitationsState(
+
+            )
+        }else{
+            userInvitationsList.map { invitation ->
+                InviteGeneratedItem(
+                    name = invitation.guest_name,
+                    /*status = if (invitation.isExpired()) "Expirada" else "Válida",*/
+                    status = "Expirada",
+                    date = "15-03",
+                    statusColor = Color.Green
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun EmptyInvitationsState(
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+
+        Icon(
+            imageVector = Icons.Outlined.MailOutline,
+            contentDescription = "Sin invitaciones",
+            tint = Color(0xFF8E8E93), // gris elegante
+            modifier = Modifier.size(64.dp)
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        InviteGeneratedItem(
-            name = "Luis Sandoval",
-            status = "Expirada",
-            date = "sáb-12",
-            statusColor = Color.Red
+        Text(
+            text = "Aún no has creado invitaciones",
+            color = Color(0xFFB0B0B0),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium
         )
 
-        InviteGeneratedItem(
-            name = "Luis Sandoval",
-            status = "Expirada",
-            date = "sáb-12",
-            statusColor = Color.Red
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Cuando generes una, aparecerá aquí",
+            color = Color(0xFF7A7A7A),
+            fontSize = 14.sp
         )
+    }
+}
+
+@Composable
+fun InvitationsLoadingState(
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(32.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CircularProgressIndicator(
+                color = Color(0xFF1C6C68),
+                strokeWidth = 3.dp
+            )
+            Spacer(modifier = Modifier.height(14.dp))
+            Text(
+                text = "Cargando invitaciones...",
+                color = Color.Gray,
+                fontSize = 14.sp
+            )
+        }
+    }
+}
+
+@Composable
+fun InvitationsErrorState(
+    message: String,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .border(
+                width = 1.dp,
+                color = Color(0xFFD32F2F),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .background(
+                color = Color(0xFF1C1C1C),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Warning,
+                contentDescription = "Error",
+                tint = Color(0xFFD32F2F),
+                modifier = Modifier.size(28.dp)
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Text(
+                text = message,
+                color = Color(0xFFD32F2F),
+                fontSize = 14.sp
+            )
+        }
     }
 }
 

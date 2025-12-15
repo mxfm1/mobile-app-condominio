@@ -11,17 +11,74 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.residente_app.data.remote.DTO.InviteCreationRequest
+import com.example.residente_app.viewmodel.CreateInvitationState
+import com.example.residente_app.viewmodel.InvitationViewModel
+import com.example.residente_app.viewmodel.UserViewModel
+import com.example.residente_app.viewmodel.UsersAppViewModel
+
+data class InviteFormState(
+    val guest_name:String = "",
+    val reason:String = "Visita",
+    val minutesAdded:Int = 30,
+    val additionalInfo:String = ""
+)
 
 @Composable
 fun CreateInviteScreen(
-    onScreenBack: () -> Unit
+    onScreenBack: () -> Unit,
+    inviteVM: InvitationViewModel,
+    userVm: UsersAppViewModel
 ) {
+    val userData by userVm.userResidenceData.collectAsState()
+
+    val requestState by inviteVM.createInviteState.collectAsState()
+    val formState = rememberInviteFormState()
+    val form = formState.value
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(requestState) {
+        when (requestState) {
+            is CreateInvitationState.Error -> {
+                val message = (requestState as CreateInvitationState.Error).message
+                if (!message.isNullOrEmpty()) {
+                    snackbarHostState.showSnackbar(message)
+                }
+                inviteVM.resetInvitationCreationState()
+            }
+
+            is CreateInvitationState.Success -> {
+                val message = (requestState as CreateInvitationState.Success).message
+                if (!message.isNullOrEmpty()) {
+                    snackbarHostState.showSnackbar(message)
+                }
+                inviteVM.resetInvitationCreationState()
+                onScreenBack()
+            }
+
+            else -> Unit
+        }
+    }
+
+    //Averiguar info del usuario
+    LaunchedEffect(Unit) {
+        userVm.getUserResidenceInfo()
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -42,14 +99,40 @@ fun CreateInviteScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            InviteFormSection()
+            InviteFormSection(
+                form=form,
+                onFormChange={formState.value = it}
+            )
         }
+        val residenceId = userData?.residence?.identifier
 
         CreateInviteButton(
+            isLoading = requestState is CreateInvitationState.Loading,
+            onClick = {
+                if(residenceId == null) return@CreateInviteButton
+               val request = InviteCreationRequest(
+                   guest_name = form.guest_name,
+                   reason = form.reason,
+                   valid_until = "2025-12-15T18:30:00Z",
+                   aditional_information = form.additionalInfo,
+                   residence = residenceId
+               )
+                inviteVM.createInvitation(request)
+            },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(20.dp)
         )
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
+}
+@Composable
+fun rememberInviteFormState(): MutableState<InviteFormState> {
+    return remember {
+        mutableStateOf(InviteFormState())
     }
 }
 
@@ -86,38 +169,79 @@ private fun HeaderSection(
 }
 
 @Composable
-private fun InviteFormSection() {
+private fun InviteFormSection(
+    form: InviteFormState,
+    onFormChange: (InviteFormState) -> Unit
+) {
     Column {
 
         FormLabel("Nombre invitado")
-        MockInput("John Doe")
+        TextInput(
+            value = form.guest_name,
+            onChange = { onFormChange(form.copy(guest_name = it)) }
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 
         FormLabel("Motivo")
-        MockDropdown("Seleccionar motivo")
+        ReasonDropdown(
+            selected = form.reason,
+            onSelect = { onFormChange(form.copy(reason = it)) }
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         FormLabel("Válido hasta")
-        DurationSelector()
+        DurationSelector(
+            selectedMinutes = form.minutesAdded,
+            onSelect = { onFormChange(form.copy(minutesAdded = it)) }
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         FormLabel("Información adicional")
-        MockTextArea("Patente del auto, peatón, etc")
+        TextAreaInput(
+            value = form.additionalInfo,
+            onChange = { onFormChange(form.copy(additionalInfo = it)) }
+        )
     }
 }
 
+
+/* --------------------------
+            FORM COMPONENTS
+   --------------------------
+ */
 @Composable
 private fun FormLabel(text: String) {
-    Text(
-        text = text,
-        color = Color.White,
-        fontSize = 14.sp,
-        modifier = Modifier.padding(bottom = 6.dp)
+    Text(text, color = Color.White, fontSize = 14.sp)
+}
+
+@Composable
+private fun TextInput(
+    value: String,
+    onChange: (String) -> Unit
+) {
+    TextField(
+        value = value,
+        onValueChange = onChange,
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true
     )
 }
+
+@Composable
+private fun ReasonDropdown(
+    selected: String,
+    onSelect: (String) -> Unit
+) {
+    TextField(
+        value = selected,
+        onValueChange = onSelect,
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
 
 @Composable
 private fun MockInput(value: String) {
@@ -138,92 +262,64 @@ private fun MockInput(value: String) {
 }
 
 @Composable
-private fun MockDropdown(text: String) {
-    Box(
+private fun TextAreaInput(
+    value: String,
+    onChange: (String) -> Unit
+) {
+    TextField(
+        value = value,
+        onValueChange = onChange,
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
-            .background(Color(0xFF1A1A1A), RoundedCornerShape(6.dp))
-            .padding(horizontal = 12.dp),
-        contentAlignment = Alignment.CenterStart
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text, color = Color.Gray)
-            Icon(
-                Icons.Default.KeyboardArrowDown,
-                contentDescription = null,
-                tint = Color.White
+            .height(120.dp)
+    )
+}
+
+@Composable
+private fun DurationSelector(
+    selectedMinutes: Int,
+    onSelect: (Int) -> Unit
+) {
+    Row {
+        listOf(30, 60, 120, 240).forEach { minutes ->
+            DurationChip(
+                text = "${minutes / 60} hr",
+                selected = minutes == selectedMinutes,
+                onClick = { onSelect(minutes) }
             )
+            Spacer(modifier = Modifier.width(8.dp))
         }
     }
 }
 
 @Composable
-private fun DurationSelector() {
-    Row {
-        DurationChip("30 mins", selected = true)
-        Spacer(modifier = Modifier.width(8.dp))
-        DurationChip("1 hr")
-        Spacer(modifier = Modifier.width(8.dp))
-        DurationChip("2 hrs")
-        Spacer(modifier = Modifier.width(8.dp))
-        DurationChip("4 hrs")
-    }
-
-    Spacer(modifier = Modifier.height(10.dp))
-
-    MockInput("Cantidad hrs")
-}
-
-@Composable
 private fun DurationChip(
     text: String,
-    selected: Boolean = false
+    selected: Boolean,
+    onClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
+            .clickable { onClick() }
             .background(
                 if (selected) Color(0xFF1C6C68) else Color(0xFF1A1A1A),
                 RoundedCornerShape(20.dp)
             )
             .padding(horizontal = 14.dp, vertical = 6.dp)
     ) {
-        Text(
-            text = text,
-            color = Color.White,
-            fontSize = 12.sp
-        )
-    }
-}
-
-@Composable
-private fun MockTextArea(placeholder: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(120.dp)
-            .background(Color(0xFF1A1A1A), RoundedCornerShape(10.dp))
-            .padding(12.dp),
-        contentAlignment = Alignment.TopStart
-    ) {
-        Text(
-            text = placeholder,
-            color = Color.Gray,
-            fontSize = 13.sp
-        )
+        Text(text, color = Color.White)
     }
 }
 
 @Composable
 private fun CreateInviteButton(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isLoading: Boolean,
+    onClick:() -> Unit
 ) {
     Button(
-        onClick = {},
+        onClick = onClick,
+        enabled = !isLoading,
         modifier = modifier
             .fillMaxWidth()
             .height(52.dp),
@@ -232,11 +328,19 @@ private fun CreateInviteButton(
             containerColor = Color(0xFF1C6C68)
         )
     ) {
-        Text(
-            text = "Crear invitación",
-            color = Color.White,
-            fontSize = 16.sp
-        )
+       if(isLoading){
+           CircularProgressIndicator(
+               modifier = Modifier.size(22.dp),
+               color = Color.White,
+               strokeWidth = 2.dp
+           )
+       }else{
+           Text(
+               text = "Crear invitación",
+               color = Color.White,
+               fontSize = 16.sp
+           )
+       }
     }
 }
 

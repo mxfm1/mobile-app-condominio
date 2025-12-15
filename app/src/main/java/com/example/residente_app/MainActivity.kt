@@ -22,6 +22,7 @@ import com.example.residente_app.ui.AppNavigation
 import com.example.residente_app.ui.components.Menuitem
 import com.example.residente_app.ui.screens.user.UserHomePage
 import com.example.residente_app.viewmodel.AuthViewModelFactory
+import com.example.residente_app.viewmodel.InvitationViewModel
 import com.example.residente_app.viewmodel.LoginViewModel
 import com.example.residente_app.viewmodel.ResidenceViewModel
 import com.example.residente_app.viewmodel.UserViewModel
@@ -34,6 +35,7 @@ class MainActivity : ComponentActivity() {
         AuthViewModelFactory(application)
     }
     private val userVm: UserViewModel by viewModels()
+    private val inviteVm: InvitationViewModel by viewModels()
     private val appUserVm: UsersAppViewModel by viewModels()
     private val residenceVm: ResidenceViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,7 +46,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 AppNavigation(
-                    vm, userVm, appUserVm,applicationContext,residenceVm,
+                    vm, userVm, appUserVm,applicationContext,residenceVm,inviteVm
                 )
             }
         }

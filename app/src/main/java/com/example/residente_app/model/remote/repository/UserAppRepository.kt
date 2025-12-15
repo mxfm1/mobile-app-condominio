@@ -8,6 +8,7 @@ import retrofit2.Response
 import android.content.Context
 import android.util.Log
 import com.example.residente_app.data.remote.DTO.AppUsers
+import com.example.residente_app.data.remote.DTO.UserResidenceInfoResponse
 import com.example.residente_app.model.remote.RetrofitInstance
 import com.example.residente_app.model.remote.RetrofitProviders
 
@@ -29,5 +30,10 @@ class UserAppRepository(context:Context){
     suspend fun getUser(id:Int):Response<AppUsers>{
         val response = api.getUser(id)
         return  response
+    }
+
+    suspend fun getUserInfo():Response<UserResidenceInfoResponse>{
+        val response = api.getResidentInfo()
+        return response
     }
 }

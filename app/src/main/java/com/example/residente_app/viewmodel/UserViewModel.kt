@@ -62,6 +62,14 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                 val response = repository.login(username,password)
                 if(response.isSuccessful){
                     val data = response.body()!!
+
+                    tokenStore.saveTokens(
+                        access = data.access,
+                        refresh = data.refresh
+                    )
+
+                    tokenStore.saveSession(data.user)
+
                     _loginState.value = ApiLoginState.Success(
                         "Bienvenido ${data.user.username}"
                     )
