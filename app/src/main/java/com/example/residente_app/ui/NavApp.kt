@@ -34,6 +34,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.residente_app.ui.components.layouts.User.UserLayout
+import com.example.residente_app.ui.screens.admin.CreateResidenceScreen
 import com.example.residente_app.ui.screens.admin.CreateUserScreen
 import com.example.residente_app.ui.screens.admin.HouseManageScreen
 import com.example.residente_app.ui.screens.admin.UserDetailScreen
@@ -192,10 +193,27 @@ fun AppNavigation(
                     onSeeProperties = {
                         nav.navigate("admin/houses")
                     },
-                    onAddProperty = {}
+                    onAddProperty = {
+                        nav.navigate("admin/create-residence")
+                    }
                 )
             }
         }
+
+        composable(route="admin/create-residence"){
+            AuthenticatedLayout(
+                items=adminRoutes,
+                onItemClick = {
+                    nav.navigate(it.route)
+                }
+            ) {
+                CreateResidenceScreen(
+                    residenceVm= residenceVm,
+                    onBack = {nav.popBackStack()}
+                )
+            }
+        }
+
 
         composable(route="admin/houses"){
             AuthenticatedLayout(
@@ -330,7 +348,10 @@ fun AppNavigation(
                 },
                 currentRoute=currentRoute
             ) {
-                UserProfileScreen()
+                UserProfileScreen(
+                    userVm = userVm,
+                    userAppVm = appUserVm
+                )
             }
         }
     }

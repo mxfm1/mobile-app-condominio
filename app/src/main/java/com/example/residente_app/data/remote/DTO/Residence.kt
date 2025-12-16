@@ -9,6 +9,17 @@ data class ResidenceResponse(
     val residents: List<AppUsers>
 )
 
+data class CreateResidenceRequest(
+    val identifier:String,
+)
+
+data class CreateResidenceResponse(
+    val identifier: String,
+    val owner: Int?,
+    val created_by: Int,
+    val created_at: String,
+    val updated_at: String
+)
 data class AddUserResidenceRequest(
     val user_id: Int
 )

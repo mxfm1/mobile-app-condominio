@@ -91,4 +91,8 @@ dependencies {
     //tiempo
     implementation("org.threeten:threetenbp:1.6.8:no-tzdb")
     implementation("com.jakewharton.threetenabp:threetenabp:1.4.6")
+
+    //qr
+    implementation("com.google.zxing:core:3.5.3")
+    implementation("androidx.core:core-ktx:1.12.0")
 }

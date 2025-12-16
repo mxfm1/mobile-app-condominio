@@ -180,7 +180,7 @@
                         )
                         CustomAddIconButton(
                             "Añadir",
-                            onClick = {},
+                            onClick = {onAddProperty()},
                             backgroundColor = AppColors.lightBlue
                         )
                     }

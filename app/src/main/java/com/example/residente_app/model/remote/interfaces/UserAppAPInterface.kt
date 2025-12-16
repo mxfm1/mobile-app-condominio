@@ -7,6 +7,8 @@ import com.example.residente_app.data.remote.DTO.AssignOwnerResponse
 import com.example.residente_app.data.remote.DTO.AssignOwnerToHouse
 import com.example.residente_app.data.remote.DTO.AssignResidentResponse
 import com.example.residente_app.data.remote.DTO.AssignResidentToHouseRequest
+import com.example.residente_app.data.remote.DTO.CreateResidenceRequest
+import com.example.residente_app.data.remote.DTO.CreateResidenceResponse
 import com.example.residente_app.data.remote.DTO.CreateUserResponse
 import com.example.residente_app.data.remote.DTO.EditResidentRequest
 import com.example.residente_app.data.remote.DTO.GetUsersResponse
@@ -37,6 +39,9 @@ interface UserAppAPInterface {
 }
 
 interface ResidenceAPInterface{
+
+    @POST("houses/create/")
+    suspend fun createHouse(@Body request: CreateResidenceRequest):Response<CreateResidenceResponse>
     @GET("houses/")
     suspend fun getHouses(): Response<List<ResidenceResponse>>
 

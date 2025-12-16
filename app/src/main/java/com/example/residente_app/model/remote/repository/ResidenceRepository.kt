@@ -6,6 +6,8 @@ import com.example.residente_app.data.remote.DTO.AddUserResidenceRequest
 import com.example.residente_app.data.remote.DTO.AssignOwnerResponse
 import com.example.residente_app.data.remote.DTO.AssignResidentResponse
 import com.example.residente_app.data.remote.DTO.AssignResidentToHouseRequest
+import com.example.residente_app.data.remote.DTO.CreateResidenceRequest
+import com.example.residente_app.data.remote.DTO.CreateResidenceResponse
 import com.example.residente_app.data.remote.DTO.EditResidentRequest
 import com.example.residente_app.data.remote.DTO.ResidenceResponse
 import com.example.residente_app.model.remote.RetrofitProviders
@@ -14,6 +16,11 @@ import retrofit2.Response
 class ResidenceRepository(context: Context) {
     private val api = RetrofitProviders.provideResidenceAPI(context)
 
+
+    suspend fun createResidence(data: CreateResidenceRequest):Response<CreateResidenceResponse>{
+        val response = api.createHouse(data)
+        return response
+    }
     suspend fun houses(): Response<List<ResidenceResponse>>{
         val response = api.getHouses()
         return response

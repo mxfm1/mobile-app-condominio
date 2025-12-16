@@ -1,5 +1,6 @@
 package com.example.residente_app.ui.screens.user.components.userInvites
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -31,6 +32,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.MailOutline
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.graphics.asImageBitmap
+import com.example.residente_app.util.generateQrCode
 
 
 @Composable
@@ -140,7 +143,18 @@ fun InviteQrCard(
                modifier = Modifier.fillMaxWidth(),
                contentAlignment = Alignment.Center
            ){
-               QrPlaceholder()
+               if(invitationContent != null){
+                   val qrBitmap = generateQrCode(invitationContent.code.toString()) // O usa un string diferente si es necesario
+
+                   // Usar Image para mostrar el QR
+                   Image(
+                       bitmap = qrBitmap.asImageBitmap(),
+                       contentDescription = "QR Code",
+                       modifier = Modifier.size(140.dp)
+                   )
+               }else {
+                   QrPlaceholder()
+               }
            }
 
             Spacer(modifier = Modifier.height(14.dp))

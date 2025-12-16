@@ -5,6 +5,8 @@ import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.residente_app.data.remote.DTO.CreateResidenceRequest
+import com.example.residente_app.data.remote.DTO.CreateResidenceResponse
 import com.example.residente_app.data.remote.DTO.Residence
 import com.example.residente_app.data.remote.DTO.ResidenceResponse
 import com.example.residente_app.model.remote.repository.ResidenceRepository
@@ -53,7 +55,17 @@ sealed class UpdateResidentsState(){
     data class Error(val message:String="Hubo un error al asignar los residentes"):UpdateResidentsState()
 }
 
+sealed class CreateResidenceState(){
+    object Idle: CreateResidenceState()
+    object Loading: CreateResidenceState()
+    data class Success(val message:String = "Residence Creada con éxito"): CreateResidenceState()
+    data class Error(val message:String="Error al crear la residencia"): CreateResidenceState()
+}
+
 class ResidenceViewModel(application: Application): AndroidViewModel(application){
+
+    private val _createResidenceState = MutableStateFlow<CreateResidenceState>(CreateResidenceState.Idle)
+    val createResidenceState = _createResidenceState.asStateFlow()
     private val _createState = MutableStateFlow<ResidenceCreateState>(ResidenceCreateState.Idle)
     val createState = _createState.asStateFlow()
 
@@ -116,6 +128,24 @@ class ResidenceViewModel(application: Application): AndroidViewModel(application
                 }
             }catch(e: Exception){
                 _stateGetResidence.value  = getResidenceState.Error("Hubo un error obteniendo la residencia: $e")
+            }
+        }
+    }
+
+    fun createResidence(identifier:String){
+        viewModelScope.launch {
+            _createResidenceState.value = CreateResidenceState.Loading
+            try{
+                val request = CreateResidenceRequest(identifier = identifier)
+                val response = repository.createResidence(request)
+                if(response.isSuccessful()){
+                   val res = response.body()
+                   _createResidenceState.value = CreateResidenceState.Success()
+                }else{
+                    _createResidenceState.value = CreateResidenceState.Error("Error al crear la residencia: HTTP: ${response.code()}")
+                }
+            }catch(e:Exception){
+                _createResidenceState.value = CreateResidenceState.Error()
             }
         }
     }
